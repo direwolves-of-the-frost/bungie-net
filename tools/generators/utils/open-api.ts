@@ -10,7 +10,7 @@ export function isUrl(value: string): value is Url {
 	return value.match(/^[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/) !== null;
 }
 
-export interface OpenAPI {
+export interface Specification {
 	openapi: string;
 	info: Info;
 	server?: Server[];

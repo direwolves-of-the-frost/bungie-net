@@ -55,7 +55,7 @@ export class Writer {
 	public getOutput(): string {
 		let output = this.output.trim();
 
-		if (this.trailingNewline) {
+		if (output !== '' && this.trailingNewline) {
 			output += this.lineEnding.repeat(1);
 		}
 
@@ -125,13 +125,5 @@ export class Writer {
 			this.writeLine(` * ${line}`);
 		});
 		this.writeLine(' */');
-	}
-
-	public prepend(text: string | string[]) {
-		const lines = (text instanceof Array ? text : text.split(/\r?\n/)).reverse();
-
-		lines.forEach((line) => {
-			this.output = `${line}${this.lineEnding}${this.output}`;
-		});
 	}
 }
