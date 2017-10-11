@@ -1,0 +1,29 @@
+{
+	"compilerOptions": {
+	  "allowSyntheticDefaultImports": true,
+		"sourceMap": false,
+		"declaration": true,
+	  "outDir": "./lib/",
+	  "emitDecoratorMetadata": true,
+	  "experimentalDecorators": true,
+	  "module": "commonjs",
+	  "moduleResolution": "node",
+	  "noImplicitAny": true,
+	  "noImplicitReturns": true,
+	  "noImplicitThis": true,
+	  "noUnusedLocals": true,
+	  "noUnusedParameters": true,
+	  "pretty": true,
+		"removeComments": true,
+		"target": "es2017",
+	  "types": [
+			"node"
+	  ]
+	},
+	"include": [
+	  "./src/**/*.ts"
+	],
+	"exclude": [
+	  "./src/**/*.spec.ts"
+	]
+}
