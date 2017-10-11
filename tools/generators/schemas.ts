@@ -176,6 +176,10 @@ request('https://raw.githubusercontent.com/Bungie-net/api/master/openapi.json', 
 				}
 			});
 
+			if (existsSync(out)) {
+				unlinkSync(out);
+			}
+
 			writers.forEach((writer, path) => {
 				const isFile = Array.from(writers.keys()).every((p) => (p === path || !p.startsWith(path)));
 				const filename = `${out}/${path}${isFile ? '' : '/index'}.ts`;
@@ -190,10 +194,6 @@ request('https://raw.githubusercontent.com/Bungie-net/api/master/openapi.json', 
 
 					return currentDirectory;
 				});
-
-				if (existsSync(filename)) {
-					unlinkSync(filename);
-				}
 
 				function sort(a: string, b: string) {
 					a = a.toLowerCase();
