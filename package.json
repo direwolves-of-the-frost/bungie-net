@@ -27,6 +27,7 @@
 		"compile": "tsc -p .",
 		"build": "npm-run-all lint clean compile",
 		"test": "mocha -r ts-node/register src/**/*.spec.ts",
+		"prepublish": "npm-run-all lint clean compile",
 		"generate:schemas": "ts-node tools/generators/schemas.ts"
 	},
 	"dependencies": {
