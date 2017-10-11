@@ -1,6 +1,8 @@
 import {Client} from './client';
 import {Destiny2Module} from './modules/destiny2.module';
 
+export * from './schemas';
+
 export class BungieAPI {
 	private client: Client;
 	public readonly destiny2: Destiny2Module;

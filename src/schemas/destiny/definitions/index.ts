@@ -9,6 +9,27 @@ import {DestinyDisplayPropertiesDefinition} from './common';
 import {DestinyDerivedItemCategoryDefinition, DestinyItemPlugDefinition} from './items';
 import {DestinyItemSourceDefinition} from './sources';
 
+import * as Common from './common';
+export {Common};
+import * as Items from './items';
+export {Items};
+import * as Progression from './progression';
+export {Progression};
+import * as Sources from './sources';
+export {Sources};
+import * as Director from './director';
+export {Director};
+import * as ActivityModifiers from './activity-modifiers';
+export {ActivityModifiers};
+import * as Sockets from './sockets';
+export {Sockets};
+import * as Lore from './lore';
+export {Lore};
+import * as Animations from './animations';
+export {Animations};
+import * as Milestones from './milestones';
+export {Milestones};
+
 /**
  * Provides common properties for destiny definitions.
  */

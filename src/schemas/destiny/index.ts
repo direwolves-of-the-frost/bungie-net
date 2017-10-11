@@ -1,6 +1,37 @@
 import {PlatformErrorCodes} from '../exceptions';
 import {DestinyMaterialRequirement} from './definitions';
 
+import * as Definitions from './definitions';
+export {Definitions};
+import * as HistoricalStats from './historical-stats';
+export {HistoricalStats};
+import * as Config from './config';
+export {Config};
+import * as Responses from './responses';
+export {Responses};
+import * as Entities from './entities';
+export {Entities};
+import * as Vendors from './vendors';
+export {Vendors};
+import * as Components from './components';
+export {Components};
+import * as Progression from './progression';
+export {Progression};
+import * as Milestones from './milestones';
+export {Milestones};
+import * as Quests from './quests';
+export {Quests};
+import * as Challenges from './challenges';
+export {Challenges};
+import * as Character from './character';
+export {Character};
+import * as Perks from './perks';
+export {Perks};
+import * as Requests from './requests';
+export {Requests};
+import * as Activities from './activities';
+export {Activities};
+
 /**
  * Information about a current character's status with a Progression. A progression is a value that can increase with activity and has levels. Think Character Level and Reputation Levels. Combine this "live" data with the related DestinyProgressionDefinition for a full picture of the Progression.
  */

@@ -1,6 +1,9 @@
 import {UserInfoCard} from '../../user';
 import {DestinyActivityModeType} from './definitions';
 
+import * as Definitions from './definitions';
+export {Definitions};
+
 export interface DestinyPostGameCarnageReportData {
 	/**
 	 * Date and time for the activity.
@@ -242,6 +245,10 @@ export interface DestinyHistoricalStatsPeriodGroup {
 	 * Collection of stats for the period.
 	 */
 	values: {[field: string]: DestinyHistoricalStatsValue};
+}
+
+export class DestinyHistoricalStatsResults {
+	[field: string]: DestinyHistoricalStatsByPeriod;
 }
 
 export interface DestinyHistoricalStatsAccountResult {

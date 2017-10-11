@@ -1,6 +1,9 @@
 import {BungieMembershipType} from '../';
 import {IgnoreResponse} from '../ignores';
 
+import * as Models from './models';
+export {Models};
+
 export interface GeneralUser {
 	membershipId: string;
 	uniqueName: string;

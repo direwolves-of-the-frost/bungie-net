@@ -13,6 +13,47 @@ import {GroupBan, GroupMember, GroupMemberApplication, GroupMembership, GroupPot
 import {PagedQuery} from './queries';
 import {TrendingEntry} from './trending';
 
+import * as Applications from './applications';
+export {Applications};
+import * as User from './user';
+export {User};
+import * as Ignores from './ignores';
+export {Ignores};
+import * as Config from './config';
+export {Config};
+import * as Partnerships from './partnerships';
+export {Partnerships};
+import * as Forum from './forum';
+export {Forum};
+import * as Queries from './queries';
+export {Queries};
+import * as GroupsV2 from './groups-v2';
+export {GroupsV2};
+import * as Destiny from './destiny';
+export {Destiny};
+import * as Interpolation from './interpolation';
+export {Interpolation};
+import * as Dates from './dates';
+export {Dates};
+import * as Links from './links';
+export {Links};
+import * as Tags from './tags';
+export {Tags};
+import * as Messages from './messages';
+export {Messages};
+import * as Entities from './entities';
+export {Entities};
+import * as Exceptions from './exceptions';
+export {Exceptions};
+import * as Components from './components';
+export {Components};
+import * as Community from './community';
+export {Community};
+import * as Trending from './trending';
+export {Trending};
+import * as Content from './content';
+export {Content};
+
 /**
  * The types of membership the Accounts system supports. This is the external facing enum used in place of the internal-only Bungie.SharedDefinitions.MembershipType.
  */
