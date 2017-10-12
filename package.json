@@ -1,7 +1,7 @@
 {
 	"name": "bungie-net",
 	"version": "0.0.1",
-	"description": "Unofficial package for accessing the Bungie.NET API.",
+	"description": "Unofficial package for accessing the Bungie.net API.",
 	"homepage": "https://github.com/direwolves-of-the-frost/bungie-net/",
 	"license": "MIT",
 	"author": {
