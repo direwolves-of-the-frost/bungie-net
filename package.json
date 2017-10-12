@@ -33,8 +33,7 @@
 	},
 	"dependencies": {
 		"request": "^2.83.0",
-		"request-promise-native": "^1.0.5",
-		"uws": "^0.14.1"
+		"request-promise-native": "^1.0.5"
 	},
 	"devDependencies": {
 		"@types/dotenv": "^4.0.1",
