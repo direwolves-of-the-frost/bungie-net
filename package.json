@@ -2,16 +2,17 @@
 	"name": "bungie-net",
 	"version": "0.0.1",
 	"description": "Unofficial package for accessing the Bungie.net API.",
-	"homepage": "https://github.com/direwolves-of-the-frost/bungie-net/",
 	"license": "MIT",
+	"homepage": "https://github.com/direwolves-of-the-frost/bungie-net",
+	"bugs": "https://github.com/direwolves-of-the-frost/bungie-net/issues",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/direwolves-of-the-frost/bungie-net.git"
+	},
 	"author": {
 		"name": "Josh Wood",
 		"email": "me@sk83rjo.sh",
 		"url": "https://sk83rjo.sh/"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/direwolves-of-the-frost/bungie-net.git"
 	},
 	"main": "lib/index.js",
 	"types": "lib/index.d.ts",
@@ -50,6 +51,6 @@
 		"typescript": "^2.4.2"
 	},
 	"engines": {
-		"node": ">=7.6.0"
+		"node": ">=6.0.0"
 	}
 }
