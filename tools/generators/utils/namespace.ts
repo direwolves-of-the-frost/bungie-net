@@ -2,7 +2,7 @@ import {relative} from 'path';
 import * as OpenAPI from './open-api';
 import {Writer} from './writer';
 
-const importPrefix = '#/components/schemas/';
+const importPrefix = '#/components/';
 
 export class Namespace extends Map<string, string | Namespace> {
 	public readonly path: string;
@@ -14,6 +14,10 @@ export class Namespace extends Map<string, string | Namespace> {
 
 		this.path = path;
 		this.specification = specification;
+	}
+
+	public static pascal(name: string) {
+		return name.charAt(0).toUpperCase() + name.slice(1);
 	}
 
 	public static getPath(namespace: string) {
@@ -29,7 +33,7 @@ export class Namespace extends Map<string, string | Namespace> {
 		let currentPath = this.path;
 		let currentNamespace: Namespace = this;
 		const namespaces = targetNamespace.substr(this.path.length).split('.');
-		const schemaName = namespaces.pop() || 'index';
+		const schemaName = Namespace.pascal(namespaces.pop()) || 'index';
 
 		namespaces.forEach((namespace) => {
 			const existingNamespace = currentNamespace.get(namespace);
@@ -51,10 +55,25 @@ export class Namespace extends Map<string, string | Namespace> {
 			}
 		});
 
-		let schema = this.specification.components.schemas[targetNamespace];
+		let schema: OpenAPI.Schema;
+		const [type, name] = targetNamespace.split(/([^.]+)\.(.*)/).slice(1, -1);
+
+		if (type === 'responses') {
+			let response = this.specification.components.responses[name];
+
+			if (OpenAPI.isReference(response)) {
+				response = OpenAPI.resolveReference<OpenAPI.Response>(this.specification, response);
+			}
+
+			if (response !== undefined && response !== null) {
+				schema = response.content['application/json'].schema;
+			}
+		} else if (type === 'schemas') {
+			schema = this.specification.components.schemas[name];
+		}
 
 		if (OpenAPI.isReference(schema)) {
-			schema = this.resolveReference<OpenAPI.Schema>(schema);
+			schema = OpenAPI.resolveReference<OpenAPI.Response>(this.specification, schema).content['application/json'].schema;
 		}
 
 		if (schema !== undefined && schema !== null) {
@@ -86,9 +105,7 @@ export class Namespace extends Map<string, string | Namespace> {
 
 			if (a < b) {
 				return -1;
-			}
-
-			if (a > b) {
+			} else if (a > b) {
 				return 1;
 			}
 
@@ -161,7 +178,7 @@ export class Namespace extends Map<string, string | Namespace> {
 
 	private addImport(schemaName: string, reference: OpenAPI.Reference) {
 		if (reference.$ref.startsWith(importPrefix)) {
-			const [namespace, path] = Namespace.getNamespaceAndPath(reference.$ref.substr(importPrefix.length));
+			const [namespace, path] = Namespace.getNamespaceAndPath(reference.$ref.substr(importPrefix.length).replace(/\//g, '.'));
 
 			if (this.path !== path) {
 				if (!this.imports.has(schemaName)) {
@@ -179,78 +196,13 @@ export class Namespace extends Map<string, string | Namespace> {
 		}
 	}
 
-	private resolveReference<T>(reference: OpenAPI.Reference): T {
-		console.info(`Resolving reference ${reference.$ref}.`);
-		let object: any = this.specification;
-		const path = reference.$ref.replace('#/', '').split('/');
-
-		while (object && path.length > 0) {
-			const key = path.shift();
-			object = object[key];
-		}
-
-		return object || null;
-	}
-
-	private resolveType(schemaName: string, resolvable: OpenAPI.Schema | OpenAPI.Reference): string {
-		if (resolvable) {
-			if (OpenAPI.isReference(resolvable)) {
-				this.addImport(schemaName, resolvable);
-				return resolvable.$ref.split('/').pop().split('.').pop();
-			} else {
-				const type = resolvable.type;
-
-				if (type === 'integer') {
-					if (resolvable.format.indexOf('int64') > -1) {
-						return 'string';
-					}
-
-					return 'number';
-				} else if (type === 'object') {
-					if (resolvable['x-dictionary-key'] !== undefined) {
-						const keyType = this.resolveType(schemaName, resolvable['x-dictionary-key']);
-						const dictionaryType = this.resolveType(schemaName, resolvable.additionalProperties);
-
-						if (keyType !== 'string' && keyType !== 'number') {
-							if (OpenAPI.isReference(resolvable['x-dictionary-key'])) {
-								const reference = this.resolveReference<OpenAPI.Schema>(resolvable['x-dictionary-key']);
-
-								if (reference['x-enum-values'] instanceof Array) {
-									console.warn('Dictionary key type rewritten to number (workaround for https://github.com/Microsoft/TypeScript/issues/13042).');
-									return `{[field: number]: ${dictionaryType}}`;
-								}
-							}
-
-							console.warn('Dictionary key type was not a number or string!');
-							return `{[field: string | number]: ${dictionaryType}}`;
-						}
-
-						return `{[field: ${keyType}]: ${dictionaryType}}`;
-					} else if (resolvable.allOf instanceof Array && resolvable.allOf.length > 0) {
-						let types = '';
-
-						resolvable.allOf.forEach((value) => {
-							types += `${types !== '' ? ' | ' : ''}${this.resolveType(schemaName, value)}`;
-						});
-
-						return types;
-					}
-				} else if (type === 'array') {
-					return `${this.resolveType(schemaName, resolvable.items)}[]`;
-				} else {
-					return type;
-				}
-			}
-		}
-
-		console.info('Unable to resolve type of:', resolvable);
-		return 'any';
-	}
-
 	private buildSchema(schemaName: string, schema: OpenAPI.Schema): string {
-		const writer = new Writer();
-
 		console.info(`Processing ${schemaName}...`);
+
+		const writer = new Writer();
+		const addImport = (reference: OpenAPI.Reference) => {
+			this.addImport(schemaName, reference);
+		};
 
 		if (schema['x-enum-values'] instanceof Array) {
 			if (schema.description !== undefined) {
@@ -281,14 +233,14 @@ export class Namespace extends Map<string, string | Namespace> {
 				console.info(`Processing property ${propertyName}...`);
 
 				const property: OpenAPI.Schema | OpenAPI.Reference = properties[propertyName];
-				const propertySchema = OpenAPI.isReference(property) ? this.resolveReference<OpenAPI.Schema>(property) : property;
+				const propertySchema = OpenAPI.isReference(property) ? OpenAPI.resolveReference<OpenAPI.Schema>(this.specification, property) : property;
 
 				if (propertySchema !== null) {
 					if (!OpenAPI.isReference(property) && propertySchema.description !== undefined) {
 						writer.writeDocComment(propertySchema.description);
 					}
 
-					writer.writeLine(`${propertyName}${propertySchema.nullable ? '?:' : ':'} ${this.resolveType(schemaName, property)};`);
+					writer.writeLine(`${propertyName}${propertySchema.nullable ? '?:' : ':'} ${OpenAPI.resolveType(this.specification, property, addImport)};`);
 				} else {
 					console.warn(`Unable to resolve reference!`);
 				}
@@ -298,8 +250,8 @@ export class Namespace extends Map<string, string | Namespace> {
 			writer.writeLine('}');
 			writer.writeBlankLine();
 		} else if (schema.type === 'object' && schema.additionalProperties instanceof Object && schema['x-dictionary-key'] instanceof Object) {
-			const keyType = this.resolveType(schemaName, schema['x-dictionary-key']);
-			const dictionaryType = this.resolveType(schemaName, schema.additionalProperties);
+			const keyType = OpenAPI.resolveType(this.specification, schema['x-dictionary-key'], addImport);
+			const dictionaryType = OpenAPI.resolveType(this.specification, schema.additionalProperties, addImport);
 
 			if (schema.description !== undefined) {
 				writer.writeDocComment(schema.description);

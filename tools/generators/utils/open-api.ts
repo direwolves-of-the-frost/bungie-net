@@ -2,12 +2,87 @@ export type ExtensionKey = string;
 export type Extension = null | string | boolean | number | any | any[];
 export type Url = string;
 
-export function isExtension(value: string): value is ExtensionKey {
+export function isExtensionKey(value: string) {
 	return value.match(/^x-/) !== null;
 }
 
-export function isUrl(value: string): value is Url {
+export function isUrl(value: string) {
 	return value.match(/^[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/) !== null;
+}
+
+export function resolveReference<T>(specification: Specification, reference: Reference): T {
+	let object: any = specification;
+	const path = reference.$ref.replace('#/', '').split('/');
+
+	while (object && path.length > 0) {
+		const key = path.shift();
+		object = object[key];
+	}
+
+	return object || null;
+}
+
+export function resolveType(specification: Specification, resolvable: Schema |Reference, callback?: (reference: Reference) => void): string {
+	if (resolvable) {
+		if (isReference(resolvable)) {
+			if (callback !== undefined) {
+				callback(resolvable);
+			}
+
+			return resolvable.$ref.split('/').pop().split('.').pop();
+		} else {
+			const type = resolvable.type;
+
+			if (type === 'integer') {
+				if (resolvable.format.indexOf('int64') > -1) {
+					return 'string';
+				}
+
+				return 'number';
+			} else if (type === 'object') {
+				if (resolvable['x-dictionary-key'] !== undefined) {
+					const keyType = resolveType(specification, resolvable['x-dictionary-key'], callback);
+					const dictionaryType = resolveType(specification, resolvable.additionalProperties, callback);
+
+					if (keyType !== 'string' && keyType !== 'number') {
+						if (isReference(resolvable['x-dictionary-key'])) {
+							console.info(`Resolving reference ${resolvable['x-dictionary-key'].$ref}.`);
+							const reference = resolveReference<Schema>(specification, resolvable['x-dictionary-key']);
+
+							if (reference['x-enum-values'] instanceof Array) {
+								console.warn('Dictionary key type rewritten to number (workaround for https://github.com/Microsoft/TypeScript/issues/13042).');
+								return `{[field: number]: ${dictionaryType}}`;
+							}
+						}
+
+						console.warn('Dictionary key type was not a number or string!');
+						return `{[field: string | number]: ${dictionaryType}}`;
+					}
+
+					return `{[field: ${keyType}]: ${dictionaryType}}`;
+				} else if (resolvable.allOf instanceof Array && resolvable.allOf.length > 0) {
+					let types = '';
+
+					resolvable.allOf.forEach((value) => {
+						types += `${types !== '' ? ' | ' : ''}${resolveType(specification, value, callback)}`;
+					});
+
+					return types;
+				}
+			} else if (type === 'array') {
+				return `${resolveType(specification, resolvable.items, callback)}[]`;
+			} else if (type === 'int32') {
+				return 'number';
+			} else if (type === 'int64') {
+				return 'string';
+			} else {
+				return type;
+			}
+		}
+	}
+
+	console.warn('Unable to resolve type of:', resolvable);
+	return 'any';
 }
 
 export interface Specification {
@@ -89,7 +164,7 @@ export interface PathItem {
 	patch?: Operation;
 	trace?: Operation;
 	servers?: Server[];
-	parameters?: Parameter[] | Reference;
+	parameters?: Array<Parameter | Reference>;
 	[field: string]: Extension;
 }
 
@@ -99,7 +174,7 @@ export interface Operation {
 	description?: string;
 	externalDocs?: ExternalDocumentation;
 	operationId?: string;
-	parameters?: Parameter[] | Reference;
+	parameters?: Array<Parameter | Reference>;
 	requestBody?: RequestBody | Reference;
 	responses: Responses | Reference;
 	callbacks?: {[callback: string]: Callback | Reference};
